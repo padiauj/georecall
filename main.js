@@ -220,9 +220,28 @@
       geoLayer.remove();
       geoLayer = null;
     }
+    // Clear any text labels from previous runs
+    clearLabels();
     state.features = [];
     state.idToLayer.clear();
     if (exportBtn) exportBtn.hidden = true;
+  }
+
+  // Remove all label markers from the map and reset label state
+  function clearLabels() {
+    try {
+      if (state.labels && state.labels.length) {
+        for (const l of state.labels) {
+          if (l && l.marker && typeof l.marker.remove === 'function') {
+            l.marker.remove();
+          } else if (l && l.marker && map && map.removeLayer) {
+            map.removeLayer(l.marker);
+          }
+        }
+      }
+    } catch (_) { /* ignore */ }
+    state.labels = [];
+    if (state.labeledIds) state.labeledIds.clear();
   }
 
   // Style helpers
@@ -730,6 +749,8 @@ out geom;`;
       layer.setStyle(styleDefaults);
     }
     state.resultsById.clear();
+    // Clear any text labels
+    clearLabels();
 
     // Reshuffle and reset
     state.order = shuffle([...state.features.keys()]);
@@ -755,6 +776,8 @@ out geom;`;
   });
 
   configToggleBtn.addEventListener('click', () => {
+    // Opening config should clear any labels left on the map
+    clearLabels();
     showConfigPanel();
   });
 
@@ -763,6 +786,7 @@ out geom;`;
   if (exitBtn) exitBtn.addEventListener('click', () => {
     // Exit to configuration screen
     stopRevealBlink();
+    clearLabels();
     showConfigPanel();
     hideUI();
   });
@@ -790,6 +814,8 @@ out geom;`;
         } catch (e) {
           console.warn('Unable to update URL for preset share', e);
         }
+        // Clear labels immediately when switching presets
+        clearLabels();
         loadGeojsonFromUrlAndStartGame(cfg, p.path);
       });
       presetButtons.appendChild(btn);
