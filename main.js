@@ -29,6 +29,7 @@
   const changeConfigBtn = document.getElementById('changeConfig');
   const exitBtn = document.getElementById('exit');
   const presetMitBtn = document.getElementById('preset-mit');
+  const presetMitMainBtn = document.getElementById('preset-mit-main');
 
   const input = {
     relationId: document.getElementById('relationId'),
@@ -785,6 +786,26 @@ out geom;`;
     loadGeojsonFromUrlAndStartGame(cfg, 'preset-maps/mit.geojson');
   });
 
+  if (presetMitAllBtn) presetMitAllBtn.addEventListener('click', () => {
+    const cfg = gatherConfigFromInputs();
+    // Update the URL so users can copy/share the current preset state
+    try {
+      const u = new URL(window.location.href);
+      const ps = new URLSearchParams(u.search);
+      // Set preset to 'mit-all' and remove conflicting params
+      ps.set('preset', 'mit-all');
+      ps.delete('geojson');
+      ps.delete('relationId'); ps.delete('relationid'); ps.delete('rel');
+      const newSearch = ps.toString();
+      const newUrl = u.pathname + (newSearch ? `?${newSearch}` : '') + u.hash;
+      window.history.replaceState(null, '', newUrl);
+    } catch (e) {
+      console.warn('Unable to update URL for preset share', e);
+    }
+
+    loadGeojsonFromUrlAndStartGame(cfg, 'preset-maps/mit-all.geojson');
+  });
+
   // Ensure a map is visible behind the configuration panel on first load
   ensureMapInitialized();
 
@@ -812,7 +833,8 @@ out geom;`;
       const zoomParam = qs.get('zoom');
 
       const presetMap = {
-        mit: 'preset-maps/mit.geojson'
+        mit: 'preset-maps/mit.geojson',
+        'mit-main': 'preset-maps/mit-main.geojson'
       };
 
       // Build a cfg object from params + fallbacks
