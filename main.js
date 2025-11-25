@@ -29,7 +29,7 @@
   const changeConfigBtn = document.getElementById('changeConfig');
   const exitBtn = document.getElementById('exit');
   const presetMitBtn = document.getElementById('preset-mit');
-  const presetMitMainBtn = document.getElementById('preset-mit-main');
+  const presetMitAllBtn = document.getElementById('preset-mit-all');
 
   const input = {
     relationId: document.getElementById('relationId'),
@@ -834,7 +834,7 @@ out geom;`;
 
       const presetMap = {
         mit: 'preset-maps/mit.geojson',
-        'mit-main': 'preset-maps/mit-main.geojson'
+        'mit-all': 'preset-maps/mit-all.geojson'
       };
 
       // Build a cfg object from params + fallbacks
