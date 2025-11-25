@@ -684,7 +684,7 @@ out geom;`;
         const tLayer = state.idToLayer.get(targetId);
         if (tLayer) {
           state.hasRevealedForCurrent = true;
-          setStatusWithIcon('wrong', 'Out of tries — click the flashing building to continue.');
+          setStatusWithIcon('wrong', 'Nope! Click the flashing building to continue.');
           // Add label now so users remember the building they missed
           addLabelForId(targetId);
           // Start continuous blink on the correct polygon
@@ -732,7 +732,7 @@ out geom;`;
     }
 
     const total = state.features.length;
-    const msg = `Done! You’ve answered all buildings 🎉\n` +
+    const msg = `Done! 🎉\n` +
       `Total: ${total}. Score: ${state.score} / ${state.maxScore}.\n` +
       `0 misses: ${zero}, 1 miss: ${one}, 2+ misses: ${twoPlus}, skipped: ${skipped}.`;
     setPrompt('All done');
