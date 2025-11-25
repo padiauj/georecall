@@ -651,6 +651,8 @@ out geom;`;
         if (tLayer) {
           state.hasRevealedForCurrent = true;
           setStatusWithIcon('wrong', 'Out of tries — click the flashing building to continue.');
+          // Add label now so users remember the building they missed
+          addLabelForId(targetId);
           // Start continuous blink on the correct polygon
           startRevealBlink(targetId);
         }
@@ -675,6 +677,8 @@ out geom;`;
     // Treat skip as wrong: set attempts to 2 (worst), no points, not skipped
     state.resultsById.set(id, { attempts: 2, skipped: false, points: 0 });
 
+    // Add label so skipped items are remembered
+    addLabelForId(id);
     const layer = state.idToLayer.get(id);
     if (layer) layer.setStyle(persistentStyleForId(id));
 
