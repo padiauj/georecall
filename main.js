@@ -27,8 +27,7 @@
   const skipBtn = document.getElementById('skip');
   const restartBtn = document.getElementById('restart');
   const exitBtn = document.getElementById('exit');
-  const presetMitBtn = document.getElementById('preset-mit');
-  const presetMitAllBtn = document.getElementById('preset-mit-all');
+  const presetButtons = document.getElementById('preset-buttons');
 
   const input = {
     relationId: document.getElementById('relationId'),
@@ -70,6 +69,14 @@
     overpassEndpoint: 'https://overpass-api.de/api/interpreter',
     styleEndpoint: 'mapstyle.json',
   };
+
+  // Define presets in one place. Update this array to add/remove presets.
+  const PRESETS = [
+    { key: 'mit-main', label: 'MIT Main Buildings', path: 'preset-maps/mit-main.geojson' },
+    { key: 'mit-east', label: 'MIT East Buildings', path: 'preset-maps/mit-east.geojson' },
+    { key: 'mit-west', label: 'MIT West Buildings', path: 'preset-maps/mit-west.geojson' },
+    { key: 'mit-all', label: 'MIT All Buildings', path: 'preset-maps/mit-all.geojson' },
+  ];
 
   // Styling choices
   const styleDefaults = {
@@ -760,45 +767,34 @@ out geom;`;
     hideUI();
   });
   if (exportBtn) exportBtn.addEventListener('click', exportCurrentGeoJSON);
-  if (presetMitBtn) presetMitBtn.addEventListener('click', () => {
-    const cfg = gatherConfigFromInputs();
-    // Update the URL so users can copy/share the current preset state
-    try {
-      const u = new URL(window.location.href);
-      const ps = new URLSearchParams(u.search);
-      // Set preset to 'mit' and remove conflicting params
-      ps.set('preset', 'mit');
-      ps.delete('geojson');
-      ps.delete('relationId'); ps.delete('relationid'); ps.delete('rel');
-      const newSearch = ps.toString();
-      const newUrl = u.pathname + (newSearch ? `?${newSearch}` : '') + u.hash;
-      window.history.replaceState(null, '', newUrl);
-    } catch (e) {
-      console.warn('Unable to update URL for preset share', e);
-    }
-
-    loadGeojsonFromUrlAndStartGame(cfg, 'preset-maps/mit.geojson');
-  });
-
-  if (presetMitAllBtn) presetMitAllBtn.addEventListener('click', () => {
-    const cfg = gatherConfigFromInputs();
-    // Update the URL so users can copy/share the current preset state
-    try {
-      const u = new URL(window.location.href);
-      const ps = new URLSearchParams(u.search);
-      // Set preset to 'mit-all' and remove conflicting params
-      ps.set('preset', 'mit-all');
-      ps.delete('geojson');
-      ps.delete('relationId'); ps.delete('relationid'); ps.delete('rel');
-      const newSearch = ps.toString();
-      const newUrl = u.pathname + (newSearch ? `?${newSearch}` : '') + u.hash;
-      window.history.replaceState(null, '', newUrl);
-    } catch (e) {
-      console.warn('Unable to update URL for preset share', e);
-    }
-
-    loadGeojsonFromUrlAndStartGame(cfg, 'preset-maps/mit-all.geojson');
-  });
+  // Build preset buttons and handlers from PRESETS
+  (function renderPresetButtons() {
+    if (!presetButtons) return;
+    presetButtons.innerHTML = '';
+    PRESETS.forEach(p => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.id = `preset-${p.key}`;
+      btn.textContent = p.label;
+      btn.addEventListener('click', () => {
+        const cfg = gatherConfigFromInputs();
+        try {
+          const u = new URL(window.location.href);
+          const ps = new URLSearchParams(u.search);
+          ps.set('preset', p.key);
+          ps.delete('geojson');
+          ps.delete('relationId'); ps.delete('relationid'); ps.delete('rel');
+          const newSearch = ps.toString();
+          const newUrl = u.pathname + (newSearch ? `?${newSearch}` : '') + u.hash;
+          window.history.replaceState(null, '', newUrl);
+        } catch (e) {
+          console.warn('Unable to update URL for preset share', e);
+        }
+        loadGeojsonFromUrlAndStartGame(cfg, p.path);
+      });
+      presetButtons.appendChild(btn);
+    });
+  })();
 
   // Ensure a map is visible behind the configuration panel on first load
   ensureMapInitialized();
@@ -826,10 +822,7 @@ out geom;`;
       const centerLngParam = qs.get('centerLng') || qs.get('lng');
       const zoomParam = qs.get('zoom');
 
-      const presetMap = {
-        mit: 'preset-maps/mit.geojson',
-        'mit-all': 'preset-maps/mit-all.geojson'
-      };
+      const presetMap = PRESETS.reduce((acc, p) => { acc[p.key] = p.path; return acc; }, {});
 
       // Build a cfg object from params + fallbacks
       const cfg = {};
