@@ -76,7 +76,7 @@ button[disabled] { cursor: not-allowed; opacity: 0.6; }
 
 #ui .prompt { font-weight: 800; margin-bottom: 6px; }
 #ui .prompt { font-weight: 600; margin-bottom: 6px; }
-#ui .status { display: flex; align-items: center; gap: 8px; min-height: 28px; color: #444; margin-bottom: 6px; }
+#ui .status { display: flex; align-items: center; gap: 8px; min-height: 28px; color: #444; margin-bottom: 6px; ; margin-bottom: 20px; }
 #ui .status .status-icon { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; }
 #ui .status .status-icon svg { width: 28px; height: 28px; display: block; }
 #ui .score { font-weight: 500; margin-bottom: 8px; }

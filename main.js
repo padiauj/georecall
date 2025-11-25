@@ -634,8 +634,8 @@ out geom;`;
 
       // Status message
       if (attempts === 0) setStatusWithIcon('correct', 'Nice! Correct on the first try.');
-      else if (attempts === 1) setStatusWithIcon('correct', 'Correct after 1 wrong guess.');
-      else setStatusWithIcon('correct', `Correct after ${attempts} wrong guesses.`);
+      else if (attempts === 1) setStatusWithIcon('correct', 'Correct!');
+      else setStatusWithIcon('correct', `Correct!`);
 
       state.score += points;
       // targetIndex increments after delay; show updated score over attempted when next starts
