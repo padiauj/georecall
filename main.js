@@ -27,6 +27,7 @@
   const skipBtn = document.getElementById('skip');
   const restartBtn = document.getElementById('restart');
   const changeConfigBtn = document.getElementById('changeConfig');
+  const exitBtn = document.getElementById('exit');
   const presetMitBtn = document.getElementById('preset-mit');
 
   const input = {
@@ -78,7 +79,8 @@
     fillOpacity: 0.1,
   };
   const styleFlashWrong = { fillColor: '#ff0000', fillOpacity: 0.6 };
-  const styleCorrect0 = { fillColor: '#ffffff', fillOpacity: 0.7 };
+  // First-try correct polygons appear green
+  const styleCorrect0 = { fillColor: '#10b981', fillOpacity: 0.7 };
   const styleCorrect1 = { fillColor: '#ffd800', fillOpacity: 0.7 }; // 1 miss → yellow
   const styleWorst = { fillColor: '#ff0000', fillOpacity: 0.7 };    // 2+ misses → red
   const styleSkipped = { fillColor: '#cccccc', fillOpacity: 0.5 };
@@ -198,6 +200,12 @@
         attribution: '&copy; OpenStreetMap contributors'
       }).addTo(map);
     }
+
+    // Show a default world view behind the initial configuration overlay
+    // so the app isn't empty on first load.
+    try {
+      map.setView([20, 0], 2); // near-global view
+    } catch (_) { /* ignore */ }
   }
 
   function clearExistingLayer() {
@@ -462,7 +470,8 @@ out geom;`;
     setPrompt(label);
     setStatus('');
     skipBtn.disabled = false;
-    restartBtn.hidden = true;
+    // Keep restart visible during gameplay
+    restartBtn.hidden = false;
     changeConfigBtn.hidden = true;
   }
 
@@ -749,11 +758,35 @@ out geom;`;
   changeConfigBtn.addEventListener('click', () => {
     showConfigPanel();
   });
+  if (exitBtn) exitBtn.addEventListener('click', () => {
+    // Exit to configuration screen
+    stopRevealBlink();
+    showConfigPanel();
+    hideUI();
+  });
   if (exportBtn) exportBtn.addEventListener('click', exportCurrentGeoJSON);
   if (presetMitBtn) presetMitBtn.addEventListener('click', () => {
     const cfg = gatherConfigFromInputs();
+    // Update the URL so users can copy/share the current preset state
+    try {
+      const u = new URL(window.location.href);
+      const ps = new URLSearchParams(u.search);
+      // Set preset to 'mit' and remove conflicting params
+      ps.set('preset', 'mit');
+      ps.delete('geojson');
+      ps.delete('relationId'); ps.delete('relationid'); ps.delete('rel');
+      const newSearch = ps.toString();
+      const newUrl = u.pathname + (newSearch ? `?${newSearch}` : '') + u.hash;
+      window.history.replaceState(null, '', newUrl);
+    } catch (e) {
+      console.warn('Unable to update URL for preset share', e);
+    }
+
     loadGeojsonFromUrlAndStartGame(cfg, 'preset-maps/mit.geojson');
   });
+
+  // Ensure a map is visible behind the configuration panel on first load
+  ensureMapInitialized();
 
   // Prefill from localStorage if available
   const last = loadConfigFromLocalStorage();

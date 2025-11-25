@@ -17,7 +17,8 @@
 
   <!-- Configuration Panel -->
   <div id="config-panel" class="panel">
-    <h2>Configure GeoRecall</h2>
+    <h2>GeoRecall</h2>
+    <div class="help">GeoRecall is a map recall game: we’ll prompt you with a name and you’ll click the matching polygon on the map. To get started quickly, select a preset below.</div>
     <form id="config-form">
       <div class="presets">
         <div class="preset-title">Presets</div>
@@ -26,7 +27,7 @@
         </div>
       </div>
 
-      <details id="advanced-options" class="advanced" open>
+      <details id="advanced-options" class="advanced">
         <summary>Advanced options</summary>
       <div class="two-col">
         <label>
@@ -74,13 +75,15 @@
 
   <!-- Game UI Overlay -->
   <div id="ui" class="panel small" hidden>
-    <div id="heading" class="prompt">GeoRecall</div>
+    <h2>GeoRecall</h2>
+    <div class="help">Read the prompt, then click the matching region on the map. After 3 wrong clicks, the correct region will blink—click it to continue. Use Skip to move on, and Restart to reshuffle.</div>
     <div id="prompt" class="prompt">Find: —</div>
     <div id="score" class="score">Score: 0 / 0</div>
     <div id="status" class="status" aria-live="polite"></div>
     <div class="buttons">
       <button id="skip" type="button">Skip</button>
-      <button id="restart" type="button" hidden>Restart</button>
+      <button id="restart" type="button">Restart</button>
+      <button id="exit" type="button">Exit</button>
       <button id="changeConfig" type="button" hidden>Change Settings</button>
     </div>
   </div>
