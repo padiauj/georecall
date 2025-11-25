@@ -58,16 +58,28 @@ button[disabled] { cursor: not-allowed; opacity: 0.6; }
 #startBtn { margin-top: 10px; width: 100%; background: #4f8cff; color: #fff; border-color: #4f8cff; }
 #startBtn:hover { filter: brightness(0.97); }
 
+/* Presets + Advanced */
+.presets { margin-bottom: 10px; }
+.preset-title { font-weight: 600; margin-bottom: 6px; }
+.preset-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+#advanced-options { margin-top: 8px; }
+#advanced-options summary { cursor: pointer; font-weight: 600; margin-bottom: 8px; }
+
 #ui .prompt { font-weight: 600; margin-bottom: 6px; }
-#ui .status { min-height: 18px; color: #444; margin-bottom: 6px; }
-#ui .status .status-icon { display: inline-block; vertical-align: middle; margin-right: 6px; width: 20px; height: 20px; }
-#ui .status .status-icon svg { width: 20px; height: 20px; display: block; }
+#ui .status { display: flex; align-items: center; gap: 8px; min-height: 28px; color: #444; margin-bottom: 6px; }
+#ui .status .status-icon { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; }
+#ui .status .status-icon svg { width: 28px; height: 28px; display: block; }
 #ui .score { font-weight: 500; margin-bottom: 8px; }
 #ui .buttons { display: flex; gap: 8px; }
 #ui .attr { margin-top: 10px; font-size: 11px; color: #666; }
 
 .config-toggle {
   position: absolute; top: 12px; right: 12px; z-index: 501;
+  background: #fff; border: 1px solid #d0d0d0; border-radius: 100px; padding: 8px 12px;
+}
+
+.export-toggle {
+  position: absolute; top: 12px; right: 120px; z-index: 501;
   background: #fff; border: 1px solid #d0d0d0; border-radius: 100px; padding: 8px 12px;
 }
 

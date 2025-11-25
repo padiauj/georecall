@@ -18,6 +18,7 @@
   const configError = document.getElementById('config-error');
   const startBtn = document.getElementById('startBtn');
   const configToggleBtn = document.getElementById('config-toggle');
+  const exportBtn = document.getElementById('export-geojson');
 
   const promptEl = document.getElementById('prompt');
   const statusEl = document.getElementById('status');
@@ -26,6 +27,7 @@
   const skipBtn = document.getElementById('skip');
   const restartBtn = document.getElementById('restart');
   const changeConfigBtn = document.getElementById('changeConfig');
+  const presetMitBtn = document.getElementById('preset-mit');
 
   const input = {
     relationId: document.getElementById('relationId'),
@@ -205,6 +207,7 @@
     }
     state.features = [];
     state.idToLayer.clear();
+    if (exportBtn) exportBtn.hidden = true;
   }
 
   // Style helpers
@@ -231,9 +234,23 @@
   }
 
   function setStatus(msg) { statusEl.textContent = msg || ''; }
+  function setStatusWithIcon(type, msg) {
+    statusEl.innerHTML = '';
+    const icon = document.createElement('span');
+    icon.className = 'status-icon';
+    const SVG_CHECK = `<?xml version="1.0" encoding="UTF-8"?><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 1.25C6.06294 1.25 1.25 6.06294 1.25 12C1.25 17.9371 6.06294 22.75 12 22.75C17.9371 22.75 22.75 17.9371 22.75 12C22.75 6.06294 17.9371 1.25 12 1.25ZM7.53044 11.9697C7.23755 11.6768 6.76268 11.6768 6.46978 11.9697C6.17689 12.2626 6.17689 12.7374 6.46978 13.0303L9.46978 16.0303C9.76268 16.3232 10.2376 16.3232 10.5304 16.0303L17.5304 9.03033C17.8233 8.73744 17.8233 8.26256 17.5304 7.96967C17.2375 7.67678 16.7627 7.67678 16.4698 7.96967L10.0001 14.4393L7.53044 11.9697Z" fill="#10b981"></path></svg>`;
+    const SVG_X = `<?xml version="1.0" encoding="UTF-8"?><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 1.25C6.06294 1.25 1.25 6.06294 1.25 12C1.25 17.9371 6.06294 22.75 12 22.75C17.9371 22.75 22.75 17.9371 22.75 12C22.75 6.06294 17.9371 1.25 12 1.25ZM9.70164 8.64124C9.40875 8.34835 8.93388 8.34835 8.64098 8.64124C8.34809 8.93414 8.34809 9.40901 8.64098 9.7019L10.9391 12L8.64098 14.2981C8.34809 14.591 8.34809 15.0659 8.64098 15.3588C8.93388 15.6517 9.40875 15.6517 9.70164 15.3588L11.9997 13.0607L14.2978 15.3588C14.5907 15.6517 15.0656 15.6517 15.3585 15.3588C15.6514 15.0659 15.6514 14.591 15.3585 14.2981L13.0604 12L15.3585 9.7019C15.6514 9.40901 15.6514 8.93414 15.3585 8.64124C15.0656 8.34835 14.5907 8.34835 14.2978 8.64124L11.9997 10.9393L9.70164 8.64124Z" fill="#ef4444"></path></svg>`;
+    icon.innerHTML = type === 'correct' ? SVG_CHECK : SVG_X;
+    const text = document.createElement('span');
+    text.textContent = msg || '';
+    statusEl.append(icon, text);
+  }
   function setPrompt(msg) { promptEl.textContent = `Find: ${msg || '—'}`; }
   function updateScoreDisplay() {
-    scoreEl.textContent = `Score: ${state.score} / ${state.maxScore}`;
+    const attempted = state.resultsById.size;
+    const percent = attempted > 0 ? Math.round((state.score / attempted) * 100) : 0;
+    const remaining = Math.max(0, state.features.length - attempted);
+    scoreEl.textContent = `Score: ${state.score} / ${attempted} (${percent}%) • Remaining: ${remaining}`;
   }
 
   function setLoading(isLoading) {
@@ -255,6 +272,25 @@ out geom;`;
 
   function validateGeoJSON(fc) {
     return fc && fc.type === 'FeatureCollection' && Array.isArray(fc.features);
+  }
+
+  async function loadGeojsonFromUrlAndStartGame(cfg, url) {
+    setLoading(true);
+    configError.textContent = '';
+    try {
+      const resp = await fetch(url, { mode: 'cors' });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const data = await resp.json();
+      if (!validateGeoJSON(data)) throw new Error('Not a valid GeoJSON FeatureCollection');
+      await initializeGame(data.features, cfg);
+      hideConfigPanel();
+      showUI();
+    } catch (err) {
+      console.error(err);
+      configError.textContent = `Failed to load preset: ${err.message || err}`;
+    } finally {
+      setLoading(false);
+    }
   }
 
   // Attempt to resolve the osmtogeojson function from various globals/exports
@@ -356,8 +392,9 @@ out geom;`;
     // Build order and max score
     state.order = shuffle([...polys.keys()]);
     state.targetIndex = 0;
-    state.maxScore = polys.length * 3;
+    state.maxScore = polys.length; // binary scoring: 1 for first try only
     updateScoreDisplay();
+    if (exportBtn) exportBtn.hidden = false;
 
     // Create the GeoJSON layer
     geoLayer = L.geoJSON(polys, {
@@ -388,6 +425,25 @@ out geom;`;
 
     // Round 1
     startRound();
+  }
+
+  function exportCurrentGeoJSON() {
+    try {
+      const fc = { type: 'FeatureCollection', features: state.features || [] };
+      const json = JSON.stringify(fc, null, 2);
+      const blob = new Blob([json], { type: 'application/geo+json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const rid = (state.config && state.config.relationId) ? `rel${state.config.relationId}` : 'data';
+      a.download = `mapmem-${rid}.geojson`;
+      a.href = url;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error('Export failed', e);
+    }
   }
 
   function startRound() {
@@ -561,18 +617,19 @@ out geom;`;
       stopRevealBlink();
       // Correct
       const attempts = state.attemptsForCurrent;
-      const points = Math.max(0, 3 - attempts);
+      const points = (attempts === 0) ? 1 : 0; // first try only
       state.resultsById.set(targetId, { attempts, skipped: false, points });
 
       // Persist color
       layer.setStyle(persistentStyleForId(targetId));
 
       // Status message
-      if (attempts === 0) setStatus('Nice! Correct on the first try.');
-      else if (attempts === 1) setStatus('Correct after 1 wrong guess.');
-      else setStatus(`Correct after ${attempts} wrong guesses.`);
+      if (attempts === 0) setStatusWithIcon('correct', 'Nice! Correct on the first try.');
+      else if (attempts === 1) setStatusWithIcon('correct', 'Correct after 1 wrong guess.');
+      else setStatusWithIcon('correct', `Correct after ${attempts} wrong guesses.`);
 
       state.score += points;
+      // targetIndex increments after delay; show updated score over attempted when next starts
       updateScoreDisplay();
 
       // Add non-overlapping label for this feature
@@ -593,12 +650,12 @@ out geom;`;
         const tLayer = state.idToLayer.get(targetId);
         if (tLayer) {
           state.hasRevealedForCurrent = true;
-          setStatus('Out of tries — click the flashing building to continue.');
+          setStatusWithIcon('wrong', 'Out of tries — click the flashing building to continue.');
           // Start continuous blink on the correct polygon
           startRevealBlink(targetId);
         }
       } else {
-        setStatus('Nope, try again.');
+        setStatusWithIcon('wrong', 'Nope, try again.');
       }
       // Always revert the wrongly clicked polygon after a short flash
       setTimeout(() => {
@@ -615,12 +672,14 @@ out geom;`;
     const feature = state.features[idx];
     const id = getFeatureId(feature, idx);
 
-    state.resultsById.set(id, { attempts: 0, skipped: true, points: 0 });
+    // Treat skip as wrong: set attempts to 2 (worst), no points, not skipped
+    state.resultsById.set(id, { attempts: 2, skipped: false, points: 0 });
 
     const layer = state.idToLayer.get(id);
     if (layer) layer.setStyle(persistentStyleForId(id));
 
     state.targetIndex += 1;
+    updateScoreDisplay();
     startRound();
   }
 
@@ -685,6 +744,11 @@ out geom;`;
   restartBtn.addEventListener('click', restartSameConfig);
   changeConfigBtn.addEventListener('click', () => {
     showConfigPanel();
+  });
+  if (exportBtn) exportBtn.addEventListener('click', exportCurrentGeoJSON);
+  if (presetMitBtn) presetMitBtn.addEventListener('click', () => {
+    const cfg = gatherConfigFromInputs();
+    loadGeojsonFromUrlAndStartGame(cfg, 'preset-maps/mit.geojson');
   });
 
   // Prefill from localStorage if available

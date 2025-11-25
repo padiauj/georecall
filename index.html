@@ -19,6 +19,15 @@
   <div id="config-panel" class="panel">
     <h2>Configure Game (Overpass)</h2>
     <form id="config-form">
+      <div class="presets">
+        <div class="preset-title">Presets</div>
+        <div class="preset-buttons">
+          <button type="button" id="preset-mit">MIT Campus Buildings</button>
+        </div>
+      </div>
+
+      <details id="advanced-options" class="advanced" open>
+        <summary>Advanced options</summary>
       <div class="two-col">
         <label>
           Relation ID (required)
@@ -49,6 +58,7 @@
           <input type="number" id="zoom" name="zoom" step="1" min="0" max="22" placeholder="16" />
         </label>
       </div>
+      </details>
 
       <details class="help">
         <summary>What do these fields mean?</summary>
@@ -77,7 +87,7 @@
     </div>
     <div class="attr">Map data © OpenStreetMap contributors</div>
   </div>
-
+  <button id="export-geojson" class="export-toggle" hidden>Export GeoJSON</button>
   <button id="config-toggle" class="config-toggle" hidden>Config</button>
 
   <script
