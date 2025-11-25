@@ -758,4 +758,83 @@ out geom;`;
   // Prefill from localStorage if available
   const last = loadConfigFromLocalStorage();
   if (last) setInputsFromConfig(last);
+
+  // Auto-start from URL params when present.
+  // Supported params:
+  // - preset=mit            -> loads `preset-maps/mit.geojson`
+  // - geojson=<url-or-path> -> loads given GeoJSON URL (CORS applies)
+  // - relationId=<id>       -> runs Overpass query for the relation
+  // Additional optional params: subtypeKey, overpassEndpoint, centerLat, centerLng, zoom
+  (function startFromUrlParams() {
+    try {
+      if (!window || !window.location) return;
+      const qs = new URLSearchParams(window.location.search);
+      const preset = qs.get('preset');
+      const geojsonParam = qs.get('geojson');
+      const relationIdParam = qs.get('relationId') || qs.get('relationid') || qs.get('rel');
+      const subtypeKeyParam = qs.get('subtypeKey') || qs.get('subtypekey');
+      const overpassEndpointParam = qs.get('overpassEndpoint') || qs.get('overpassendpoint');
+      const centerLatParam = qs.get('centerLat') || qs.get('lat');
+      const centerLngParam = qs.get('centerLng') || qs.get('lng');
+      const zoomParam = qs.get('zoom');
+
+      const presetMap = {
+        mit: 'preset-maps/mit.geojson'
+      };
+
+      // Build a cfg object from params + fallbacks
+      const cfg = {};
+      if (subtypeKeyParam) cfg.subtypeKey = subtypeKeyParam;
+      if (overpassEndpointParam) cfg.overpassEndpoint = overpassEndpointParam;
+      const lat = parseNumber(centerLatParam);
+      const lng = parseNumber(centerLngParam);
+      if (lat !== undefined && lng !== undefined) cfg.center = { lat, lng };
+      const z = parseNumber(zoomParam);
+      if (z !== undefined) cfg.zoom = z;
+
+      // If a preset name is provided and maps to a file, start the preset.
+      if (preset && presetMap[preset]) {
+        // populate inputs for discoverability
+        input.subtypeKey.value = cfg.subtypeKey || DEFAULTS.subtypeKey;
+        input.overpassEndpoint.value = cfg.overpassEndpoint || DEFAULTS.overpassEndpoint;
+        if (cfg.center) { input.lat.value = cfg.center.lat; input.lng.value = cfg.center.lng; }
+        if (cfg.zoom !== undefined) input.zoom.value = cfg.zoom;
+        // load the preset file
+        const url = presetMap[preset];
+        // allow the page to finish wiring up UI before loading
+        setTimeout(() => loadGeojsonFromUrlAndStartGame(cfg, url), 50);
+        return;
+      }
+
+      // If a direct geojson URL/path is provided, use it
+      if (geojsonParam) {
+        input.subtypeKey.value = cfg.subtypeKey || DEFAULTS.subtypeKey;
+        input.overpassEndpoint.value = cfg.overpassEndpoint || DEFAULTS.overpassEndpoint;
+        if (cfg.center) { input.lat.value = cfg.center.lat; input.lng.value = cfg.center.lng; }
+        if (cfg.zoom !== undefined) input.zoom.value = cfg.zoom;
+        const url = decodeURIComponent(geojsonParam);
+        setTimeout(() => loadGeojsonFromUrlAndStartGame(cfg, url), 50);
+        return;
+      }
+
+      // If relationId is present, start Overpass flow
+      if (relationIdParam) {
+        const rid = parseNumber(relationIdParam);
+        if (rid !== undefined) {
+          cfg.relationId = rid;
+          if (!cfg.subtypeKey) cfg.subtypeKey = DEFAULTS.subtypeKey;
+          if (!cfg.overpassEndpoint) cfg.overpassEndpoint = DEFAULTS.overpassEndpoint;
+          // reflect in form inputs
+          input.relationId.value = cfg.relationId;
+          input.subtypeKey.value = cfg.subtypeKey;
+          input.overpassEndpoint.value = cfg.overpassEndpoint;
+          if (cfg.center) { input.lat.value = cfg.center.lat; input.lng.value = cfg.center.lng; }
+          if (cfg.zoom !== undefined) input.zoom.value = cfg.zoom;
+          setTimeout(() => loadOverpassAndStartGame(cfg), 50);
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to parse URL params for auto-start', e);
+    }
+  })();
 })();

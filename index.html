@@ -17,7 +17,7 @@
 
   <!-- Configuration Panel -->
   <div id="config-panel" class="panel">
-    <h2>Configure Game (Overpass)</h2>
+    <h2>Configure GeoRecall</h2>
     <form id="config-form">
       <div class="presets">
         <div class="preset-title">Presets</div>
@@ -58,37 +58,34 @@
           <input type="number" id="zoom" name="zoom" step="1" min="0" max="22" placeholder="16" />
         </label>
       </div>
-      </details>
-
-      <details class="help">
+      <div class="help">
         <summary>What do these fields mean?</summary>
         <ul>
           <li><strong>Relation ID</strong>: OSM relation ID for an area (e.g., campus boundary). Find it in the OSM URL.</li>
           <li><strong>Subtype key</strong>: Tag key to filter features, e.g., <code>building</code>.</li>
           <li><strong>Overpass endpoint</strong>: API to query OSM data. Default is the public instance.</li>
           <li><strong>Center/Zoom</strong>: Optional. If omitted, the map fits to the data bounds.</li>
-        </ul>
+        </ul></div>
+        <button id="startBtn" type="submit">Start Game</button>
+        <div id="config-error" class="error" role="alert" aria-live="polite"></div>
       </details>
-
-      <div id="config-error" class="error" role="alert" aria-live="polite"></div>
-      <button id="startBtn" type="submit">Start Game</button>
     </form>
   </div>
 
   <!-- Game UI Overlay -->
   <div id="ui" class="panel small" hidden>
+    <div id="heading" class="prompt">GeoRecall</div>
     <div id="prompt" class="prompt">Find: —</div>
-    <div id="status" class="status" aria-live="polite"></div>
     <div id="score" class="score">Score: 0 / 0</div>
+    <div id="status" class="status" aria-live="polite"></div>
     <div class="buttons">
       <button id="skip" type="button">Skip</button>
       <button id="restart" type="button" hidden>Restart</button>
-      <button id="changeConfig" type="button" hidden>Change Config</button>
+      <button id="changeConfig" type="button" hidden>Change Settings</button>
     </div>
-    <div class="attr">Map data © OpenStreetMap contributors</div>
   </div>
   <button id="export-geojson" class="export-toggle" hidden>Export GeoJSON</button>
-  <button id="config-toggle" class="config-toggle" hidden>Config</button>
+  <button id="config-toggle" class="config-toggle" hidden>Settings</button>
 
   <script
     src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
