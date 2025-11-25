@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Building Guessr (Configurable GeoJSON)</title>
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div id="map"></div>
+
+  <!-- Configuration Panel -->
+  <div id="config-panel" class="panel">
+    <h2>Configure Game (Overpass)</h2>
+    <form id="config-form">
+      <div class="two-col">
+        <label>
+          Relation ID (required)
+          <input type="number" id="relationId" name="relationId" required placeholder="e.g., 123456" />
+        </label>
+        <label>
+          Subtype key (default "building")
+          <input type="text" id="subtypeKey" name="subtypeKey" placeholder="building" />
+        </label>
+      </div>
+      <label>
+        Overpass API endpoint
+        <input type="url" id="overpassEndpoint" name="overpassEndpoint" placeholder="https://overpass-api.de/api/interpreter" value="https://overpass-api.de/api/interpreter" />
+      </label>
+      <div class="two-col">
+        <label>
+          Center Latitude (optional)
+          <input type="number" id="centerLat" name="centerLat" step="any" placeholder="" />
+        </label>
+        <label>
+          Center Longitude (optional)
+          <input type="number" id="centerLng" name="centerLng" step="any" placeholder="" />
+        </label>
+      </div>
+      <div class="two-col">
+        <label>
+          Zoom (optional, e.g., 16)
+          <input type="number" id="zoom" name="zoom" step="1" min="0" max="22" placeholder="16" />
+        </label>
+      </div>
+
+      <details class="help">
+        <summary>What do these fields mean?</summary>
+        <ul>
+          <li><strong>Relation ID</strong>: OSM relation ID for an area (e.g., campus boundary). Find it in the OSM URL.</li>
+          <li><strong>Subtype key</strong>: Tag key to filter features, e.g., <code>building</code>.</li>
+          <li><strong>Overpass endpoint</strong>: API to query OSM data. Default is the public instance.</li>
+          <li><strong>Center/Zoom</strong>: Optional. If omitted, the map fits to the data bounds.</li>
+        </ul>
+      </details>
+
+      <div id="config-error" class="error" role="alert" aria-live="polite"></div>
+      <button id="startBtn" type="submit">Start Game</button>
+    </form>
+  </div>
+
+  <!-- Game UI Overlay -->
+  <div id="ui" class="panel small" hidden>
+    <div id="prompt" class="prompt">Find: —</div>
+    <div id="status" class="status" aria-live="polite"></div>
+    <div id="score" class="score">Score: 0 / 0</div>
+    <div class="buttons">
+      <button id="skip" type="button">Skip</button>
+      <button id="restart" type="button" hidden>Restart</button>
+      <button id="changeConfig" type="button" hidden>Change Config</button>
+    </div>
+    <div class="attr">Map data © OpenStreetMap contributors</div>
+  </div>
+
+  <button id="config-toggle" class="config-toggle" hidden>Config</button>
+
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+  <!-- MapLibre GL + Leaflet bridge for vector tiles -->
+  <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
+  <script defer src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+  <script defer src="https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.0.22/leaflet-maplibre-gl.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/osmtogeojson@3.0.0-beta.5/osmtogeojson.min.js"></script>
+  <script defer src="./main.js"></script>
+</body>
+</html>
