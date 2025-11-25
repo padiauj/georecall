@@ -26,7 +26,6 @@
   const uiEl = document.getElementById('ui');
   const skipBtn = document.getElementById('skip');
   const restartBtn = document.getElementById('restart');
-  const changeConfigBtn = document.getElementById('changeConfig');
   const exitBtn = document.getElementById('exit');
   const presetMitBtn = document.getElementById('preset-mit');
   const presetMitAllBtn = document.getElementById('preset-mit-all');
@@ -473,7 +472,6 @@ out geom;`;
     skipBtn.disabled = false;
     // Keep restart visible during gameplay
     restartBtn.hidden = false;
-    changeConfigBtn.hidden = true;
   }
 
   // --- Geometry helpers for label placement ---
@@ -717,7 +715,6 @@ out geom;`;
     // Show controls
     skipBtn.disabled = true;
     restartBtn.hidden = false;
-    changeConfigBtn.hidden = false;
   }
 
   function restartSameConfig() {
@@ -756,9 +753,6 @@ out geom;`;
 
   skipBtn.addEventListener('click', skipCurrent);
   restartBtn.addEventListener('click', restartSameConfig);
-  changeConfigBtn.addEventListener('click', () => {
-    showConfigPanel();
-  });
   if (exitBtn) exitBtn.addEventListener('click', () => {
     // Exit to configuration screen
     stopRevealBlink();
